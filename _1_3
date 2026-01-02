@@ -1,0 +1,135 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+
+package com.mycompany.chapter1challenge3;
+
+import java.util.Scanner;
+import java.util.Random;
+
+public class Chapter1Challenge3 {
+
+    public static void main(String[] args) {
+        // --- Initialization ---
+        Scanner scanner = new Scanner(System.in);
+        Random rand = new Random();
+        
+        final int MAX_HEALTH = 100;
+        int playerHealth;
+        int numRooms;
+
+        System.out.println("--- THE DUNGEON GAME SETUP ---");
+
+        // --- User Input for Game Parameters ---
+        
+        // Get starting health
+        System.out.print("Enter your starting health (Max " + MAX_HEALTH + "): ");
+        if (scanner.hasNextInt()) {
+            playerHealth = scanner.nextInt();
+            // Cap health at 100 on start, but allow user to start lower
+            playerHealth = Math.min(playerHealth, MAX_HEALTH);
+        } else {
+            System.out.println("Invalid input. Starting with default health of 100.");
+            playerHealth = MAX_HEALTH;
+        }
+        scanner.nextLine(); // Consume newline
+
+        // Get number of rooms
+        System.out.print("Enter the number of rooms in the dungeon (e.g., 5): ");
+        if (scanner.hasNextInt()) {
+            numRooms = scanner.nextInt();
+        } else {
+            System.out.println("Invalid input. Setting number of rooms to default (5).");
+            numRooms = 5;
+        }
+        scanner.nextLine(); // Consume newline
+
+        System.out.println("\n---------------------------------");
+        System.out.println("Starting adventure: " + numRooms + " rooms with " + playerHealth + " health.");
+        System.out.println("---------------------------------");
+        
+        // --- Main Game Loop (for dynamic number of rooms) ---
+        for (int room = 1; room <= numRooms; room++) {
+            System.out.println("\nEntering room " + room + "...");
+
+            // Generate a random event (1: Trap, 2: Potion, 3: Monster)
+            int event = rand.nextInt(3) + 1; // Generates 1, 2, or 3
+            String healthMessage = "";
+
+            // --- Event Handling (switch statement) ---
+            switch (event) {
+                case 1: // Trap Event
+                    playerHealth -= 20;
+                    healthMessage = "A TRAP sprung! Health -20.";
+                    break;
+
+                case 2: // Healing Potion Event
+                    int oldHealth = playerHealth;
+                    playerHealth += 15;
+                    
+                    if (playerHealth > MAX_HEALTH) {
+                        playerHealth = MAX_HEALTH;
+                        healthMessage = "You found a HEALING POTION! Health +" + (MAX_HEALTH - oldHealth) + ". Health capped to " + MAX_HEALTH + ".";
+                    } else {
+                        healthMessage = "You found a HEALING POTION! Health +15.";
+                    }
+                    break;
+
+                case 3: // Monster Event
+                    System.out.println("A MONSTER appears! Guess a number (1-5) to defeat it.");
+                    
+                    int secretNumber = rand.nextInt(5) + 1;
+                    int playerGuess;
+                    boolean defeated = false;
+
+                    // --- Guessing Loop (do-while statement) ---
+                    do {
+                        System.out.print("Guess the number (1-5): ");
+                        
+                        // Check for valid integer input
+                        if (scanner.hasNextInt()) {
+                            playerGuess = scanner.nextInt();
+                            scanner.nextLine(); // Consume newline
+                        } else {
+                            System.out.println("Invalid input. Please enter a number (1-5).");
+                            scanner.nextLine(); // Consume the invalid input
+                            playerGuess = 0; 
+                            continue;
+                        }
+
+                        if (playerGuess == secretNumber) {
+                            defeated = true;
+                            healthMessage = "You defeated the monster!";
+                        } else {
+                            System.out.println("Wrong! Try again.");
+                        }
+                    } while (!defeated);
+                    
+                    break;
+            }
+            
+            // Print the outcome
+            System.out.println(healthMessage);
+            System.out.println("Current Health: " + playerHealth);
+            
+            // --- Defeat Check (break statement) ---
+            if (playerHealth <= 0) {
+                System.out.println("\n*** GAME OVER ***");
+                System.out.println("Your health is at 0 or below.");
+                System.out.println("You have been defeated in room " + room + ".");
+                
+                // Exit the for loop early
+                break; 
+            }
+            
+            // --- Victory Check (Only reached if the loop completes) ---
+            if (room == numRooms) {
+                System.out.println("\n*** VICTORY ***");
+                System.out.println("You cleared the dungeon! Victorious with " + playerHealth + " health!");
+            }
+        }
+        
+        // The scanner is closed at the end of the game regardless of outcome.
+        scanner.close();
+    }
+}
