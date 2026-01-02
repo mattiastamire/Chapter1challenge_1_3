@@ -1,0 +1,99 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+
+package com.mycompany.chapter1_challenge_1_4;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
+
+// Custom Exception remains the same
+class InvalidConfigVersionException extends Exception {
+    public InvalidConfigVersionException(String message) {
+        super(message);
+    }
+}
+
+public class Chapter1_Challenge_1_4 {
+
+    public static void main(String[] args) {
+        // --- Setup and User Input ---
+        // Use try-with-resources for the Scanner to ensure it closes automatically
+        try (Scanner userInputScanner = new Scanner(System.in)) { 
+            
+            System.out.println("--- ROBUST FILE CONFIG READER ---");
+            System.out.print("Enter the name of the configuration file (e.g., config.txt): ");
+            String configFileName = userInputScanner.nextLine().trim();
+
+            System.out.println("\nAttempting to read file: " + configFileName);
+
+            // --- Core Logic Call ---
+            readConfigFile(configFileName);
+            
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: Configuration file not found. Ensure the file name is correct.");
+            
+        } catch (NumberFormatException e) {
+            System.out.println("Error: The first line must be a valid integer for the config version.");
+            
+        } catch (InvalidConfigVersionException e) {
+            System.out.println("Error: " + e.getMessage());
+
+        } catch (IOException e) {
+            System.out.println("Error: A file I/O issue occurred.");
+            System.out.println("Details: " + e.getMessage());
+            
+        } catch (Exception e) {
+            System.out.println("Error: An unexpected error occurred.");
+            System.out.println("Details: " + e.getMessage());
+            
+        } finally {
+            // FINALLY block is still mandatory for the challenge, even with try-with-resources.
+            System.out.println("\nConfig read attempt finished.");
+        }
+    }
+
+    // This method now uses try-with-resources internally as well
+    private static void readConfigFile(String fileName) 
+            throws FileNotFoundException, IOException, NumberFormatException, InvalidConfigVersionException {
+        
+        // --- Try-with-Resources: Scanner closes automatically! ---
+        try (Scanner fileScanner = new Scanner(new File(fileName))) { 
+            
+            // --- Process Line 1: Config Version ---
+            if (!fileScanner.hasNextLine()) {
+                throw new IOException("Config file is empty.");
+            }
+            
+            // NumberFormatException is thrown here if the content is not an integer
+            int configVersion = Integer.parseInt(fileScanner.nextLine().trim());
+            
+            System.out.println("Config Version found: " + configVersion);
+
+            // Throw custom exception if version is too low
+            if (configVersion < 2) {
+                throw new InvalidConfigVersionException("Config version too old! Version " + configVersion + " found; minimum required is 2.");
+            }
+            
+            // --- Process Line 2: File Path ---
+            if (!fileScanner.hasNextLine()) {
+                throw new IOException("Config file is missing the required file path on line 2.");
+            }
+            
+            String filePath = fileScanner.nextLine().trim();
+            File pathCheck = new File(filePath);
+
+            System.out.println("File Path found: " + filePath);
+
+            // Check if the file path exists and throw a custom IOException
+            if (!pathCheck.exists()) {
+                throw new IOException("The configured file path does not exist: " + filePath);
+            }
+            
+            System.out.println("Success! Configuration is valid and robustly checked.");
+
+        } // Resource (fileScanner) is automatically closed here.
+    }
+}
